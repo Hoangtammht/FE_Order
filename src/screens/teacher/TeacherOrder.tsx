@@ -94,6 +94,7 @@ const TeacherOrder: React.FC<TeacherProps> = ({ onToggleMenu }) => {
           icon={<MenuOutlined />}
           onClick={onToggleMenu}
           className="menu-button"
+          style={{ marginRight: '45px', fontSize: '20px', color: 'black',paddingBottom: '220px' }}
         />
         <Title level={3} className="header-title">
           Các đơn Hàng của Giáo Viên
