@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Table, DatePicker, Button, Input, Space, Typography, message, Row, Col, Dropdown, Avatar, Menu, Modal } from 'antd';
+import { Table, DatePicker, Button, Input, Space, Typography, message, Row, Col, Dropdown, Avatar, Menu, Modal, Tag } from 'antd';
 import { SearchOutlined, FileExcelOutlined } from '@ant-design/icons';
 import * as XLSX from 'xlsx';
 import moment from 'moment';
@@ -42,10 +42,10 @@ const AccountantScreen = () => {
     }
   };
 
-  const handleConfirmOrder = async (orderID: number) => {
+  const handleConfirmOrder = async (orderID: number, isConfirm: number) => {
     try {
       const response = await OrderHandleApi(`/order/confirmOrder`,
-        { orderID: orderID, isConfirm: 1 },
+        { orderID: orderID, isConfirm: isConfirm },
         'put');
       if (response.status === 200) {
         message.success('Xét duyệt thành công');
@@ -65,16 +65,19 @@ const AccountantScreen = () => {
     XLSX.writeFile(workbook, 'orders.xlsx');
   };
 
-  const showConfirm = (orderID: number) => {
+  const showConfirm = (orderID: number, isConfirm: number) => {
+    const confirmTitle = isConfirm === 1 
+      ? 'Bạn có chắc chắn muốn xét duyệt đơn hàng này không?' 
+      : 'Bạn có chắc chắn muốn từ chối đơn hàng này không?';
+  
     confirm({
-      title: 'Bạn có chắc chắn muốn xét duyệt đơn hàng này không?',
+      title: confirmTitle,
       okText: 'Xác nhận',
       cancelText: 'Hủy',
       onOk() {
-        handleConfirmOrder(orderID);
+        handleConfirmOrder(orderID, isConfirm);
       },
       onCancel() {
-        console.log('Cancelled');
       },
     });
   };
@@ -115,23 +118,38 @@ const AccountantScreen = () => {
       title: 'Action',
       key: 'action',
       render: (text: any, record: any) => (
-        record.isConfirm === 0 ? (
-          <Button
-            type="primary"
-            onClick={() => showConfirm(record.orderID)}
-          >
-            Chờ xét duyệt
-          </Button>
-        ) : (
-          <Button
-            type="primary"
-            disabled
-          >
-            Đã duyệt
-          </Button>
-        )
+        <>
+          {record.isConfirm === 0 ? (
+            <>
+              <Button
+                type="primary"
+                onClick={() => showConfirm(record.orderID, 1)}
+                style={{ marginRight: '8px' }}
+              >
+                Xét duyệt
+              </Button>
+              <Button
+                type="primary"
+                onClick={() => showConfirm(record.orderID, 2)}
+              >
+                Từ chối
+              </Button>
+            </>
+          ) : record.isConfirm === 1 ? (
+            <Tag color="green" style={{ marginRight: '8px' }}>
+              Đã duyệt
+            </Tag>
+          ) : (
+            <Tag color="red" style={{ marginRight: '8px' }}>
+              Đã từ chối
+            </Tag>
+          )}
+        </>
       ),
     }
+    
+    
+    
   ];
 
   const onSearchTeacher = (value: string) => {

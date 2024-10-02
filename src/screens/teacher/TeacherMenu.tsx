@@ -24,10 +24,14 @@ interface MenuData {
 interface MenuItem {
     scheduleID: 1 | 2 | 3;
     dishName: string;
+    scheduleName: string;
     serveDate: string;
     quantity: number;
 }
+
 interface OrderItem {
+    scheduleID: 1 | 2 | 3;
+    scheduleName: string;
     menuID: string;
     dishName: string;
 }
@@ -53,6 +57,7 @@ const TeacherMenu: React.FC<TeacherProps> = ({ onToggleMenu }) => {
     const [orderData, setOrderData] = useState<OrderItem[]>([]);
     const [selectedDate, setSelectedDate] = useState<moment.Moment | null>(moment());
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [filteredMeals, setFilteredMeals] = useState<OrderItem[]>([]);
     const [form] = Form.useForm();
     const auth = useSelector(authSelector);
 
@@ -240,7 +245,6 @@ const TeacherMenu: React.FC<TeacherProps> = ({ onToggleMenu }) => {
                     >
                         <DatePicker
                             format="DD/MM/YYYY"
-                            // defaultValue={selectedDate}
                             style={{ width: '100%' }}
                             disabledDate={(current) => current && current < moment().startOf('day')}
                             onChange={async (date) => {
@@ -248,7 +252,7 @@ const TeacherMenu: React.FC<TeacherProps> = ({ onToggleMenu }) => {
                                     const formattedDate = date.format('YYYY-MM-DD');
                                     try {
                                         const response = await MenuHandleApi(`/menu/getMenuByDate?serveDate=${formattedDate}`, {}, 'get');
-                                        setOrderData(response.data);
+                                        setOrderData(response.data); // Cập nhật orderData từ API
                                     } catch (error) {
                                         console.error(error);
                                     }
@@ -256,6 +260,31 @@ const TeacherMenu: React.FC<TeacherProps> = ({ onToggleMenu }) => {
                             }}
                         />
                     </Form.Item>
+
+                    <Form.Item
+                        name="scheduleID"
+                        label="Buổi"
+                        rules={[{ required: true, message: 'Vui lòng chọn buổi!' }]}
+                    >
+                        <Select
+                            placeholder="Chọn buổi"
+                            style={{ width: '100%' }}
+                            showSearch
+                            optionFilterProp="children"
+                            onChange={(selectedSchedule) => {
+                                // Lọc món ăn dựa trên buổi đã chọn
+                                const filteredMeals = orderData.filter(
+                                    (meal: OrderItem) => meal.scheduleID === selectedSchedule
+                                );
+                                setFilteredMeals(filteredMeals); // Cập nhật danh sách món ăn
+                            }}
+                        >
+                            <Option value={1}>Sáng</Option>
+                            <Option value={2}>Trưa</Option>
+                            <Option value={3}>Chiều</Option>
+                        </Select>
+                    </Form.Item>
+
                     <Form.Item
                         name="menuID"
                         label="Món ăn"
@@ -267,7 +296,7 @@ const TeacherMenu: React.FC<TeacherProps> = ({ onToggleMenu }) => {
                             showSearch
                             optionFilterProp="children"
                         >
-                            {orderData.map((meal: OrderItem) => (
+                            {filteredMeals.map((meal: OrderItem) => (
                                 <Option key={meal.menuID} value={meal.menuID}>
                                     {meal.dishName}
                                 </Option>
@@ -290,6 +319,8 @@ const TeacherMenu: React.FC<TeacherProps> = ({ onToggleMenu }) => {
                     </Form.Item>
                 </Form>
             </Modal>
+
+
 
 
         </div>

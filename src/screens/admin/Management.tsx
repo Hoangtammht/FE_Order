@@ -19,9 +19,12 @@ const Management = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState(2);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isModalAssignClass, setModalAssignClass] = useState(false);
   const [form] = Form.useForm();
 
   const [roles, setRoles] = useState<Role[]>([]); 
+  const [teachers, setTeachers] = useState([]); // Lưu danh sách giáo viên (roleID = 2)
+  const [classes, setClasses] = useState([]); 
 
   const fetchRoles = async () => {
     try {
@@ -38,27 +41,43 @@ const Management = () => {
       const response = await ListUserHandleApi(`/user/getListUserByRole?roleID=${roleID}`, {}, 'get');
       if (response.data) {
         setUsers(response.data);
+        if (roleID === 2) {
+          setTeachers(response.data); // Lưu danh sách giáo viên
+        }
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const fetchClasses = async () => {
+    try {
+      const response = await ListUserHandleApi(`/class/getAllClass`, {}, 'get');
+      setClasses(response.data);
+    } catch (error) {
+      console.error('Failed to fetch classes:', error);
+    }
+  };
+
   useEffect(() => {
     fetchUsers(selectedRole);
     fetchRoles();
+    fetchClasses();
   }, [selectedRole]);
 
   const showModal = () => {
     setIsModalVisible(true);
   };
 
+  const showModalAssignClass = () => {
+    setModalAssignClass(true);
+  };
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      console.log('Form Values: ', values);
       const response = await ListUserHandleApi(`/user/registerUser`, {
         fullName: values.fullName,
         password: values.password,
@@ -73,13 +92,36 @@ const Management = () => {
         fetchUsers(selectedRole);
       }
     } catch (error) {
-      console.error('Error creating user:', error);
       message.error('Tạo tài khoản thất bại');
+    }
+  };
+
+  const handleSubmitAssignClass = async () => {
+    try {
+      const values = await form.validateFields();
+      const response = await ListUserHandleApi(`/class/assignClass`, {
+        userName: values.userName,
+        classID: values.classID
+      }, 'put');
+
+      if (response.status === 200) {
+        message.success('Phân lớp thành công');
+        setModalAssignClass(false);
+        form.resetFields();
+        fetchUsers(selectedRole);
+      }
+    } catch (error) {
+      message.error('Phân lớp thất bại');
     }
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
+    form.resetFields();
+  };
+
+  const handleCancelAssignClass = () => {
+    setModalAssignClass(false);
     form.resetFields();
   };
 
@@ -165,9 +207,15 @@ const Management = () => {
           </Button>
         </div>
 
-        <Button style={{marginTop: '10px'}} type="primary" icon={<PlusOutlined />} onClick={showModal}>
+       <div>
+       <Button style={{marginTop: '10px'}} type="primary" icon={<PlusOutlined />} onClick={showModal}>
           Thêm tài khoản
         </Button>
+
+        <Button style={{marginTop: '10px', marginLeft: '10px'}} type="primary" icon={<PlusOutlined />} onClick={showModalAssignClass}>
+          Phân lớp
+        </Button>
+       </div>
       </div>
 
       <div className="table-responsive">
@@ -221,6 +269,45 @@ const Management = () => {
               {roles.map(role => (
                 <Option key={role.roleID} value={role.roleID}>
                   {role.roleName}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Phân lớp"
+        visible={isModalAssignClass}
+        onOk={handleSubmitAssignClass}
+        onCancel={handleCancelAssignClass}
+        okText="Phân lớp"
+        cancelText="Hủy"
+      >
+        <Form layout='vertical' form={form} size='large'>
+          <Form.Item
+            name={'userName'}
+            label="Giáo viên"
+            rules={[{ required: true, message: 'Please select a teacher' }]}
+          >
+            <Select placeholder='Chọn giáo viên' allowClear>
+              {teachers.map((teacher: any) => (
+                <Option key={teacher.userName} value={teacher.userName}>
+                  {teacher.fullName}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name={'classID'}
+            label="Lớp học"
+            rules={[{ required: true, message: 'Please select a class' }]}
+          >
+            <Select placeholder='Chọn lớp học' allowClear>
+              {classes.map((classItem: any) => (
+                <Option key={classItem.classID} value={classItem.classID}>
+                  {classItem.className}
                 </Option>
               ))}
             </Select>

@@ -12,6 +12,7 @@ interface Order {
   className: string;
   quantity: number;
   totalPrice: number;
+  scheduleName: string;
   isConfirm: number;
   createdAt: string;
 }
@@ -77,6 +78,11 @@ const ChefOrder: React.FC<ChefProps> = ({ onToggleMenu })  => {
       title: 'Số lượng',
       dataIndex: 'quantity',
       key: 'quantity',
+    },
+    {
+      title: 'Thời gian',
+      dataIndex: 'scheduleName',
+      key: 'scheduleName',
     },
     {
       title: 'Ngày đặt',
