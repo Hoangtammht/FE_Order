@@ -1,0 +1,14 @@
+.logo img {
+  height: 100px;
+}
+
+
+@media (max-width: 768px) {
+  .sidebar {
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      height: 300px !important;
+  }
+
+}

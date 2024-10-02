@@ -1,0 +1,26 @@
+@media (max-width: 768px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100% !important;
+    height: auto;
+    display: flex;
+    justify-content: center;
+  }
+
+  .header {
+    padding: 10px 15px;
+  }
+
+  .management-content {
+    padding: 10px;
+  }
+
+  .table-responsive {
+    overflow-x: scroll;
+  }
+}
+
+  
