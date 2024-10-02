@@ -164,17 +164,21 @@ const AccountantScreen = () => {
 
   return (
     <div style={{ padding: '20px' }}>
-      <Header className="header">
-        <div className="header-left">
-          <Title level={3} className="text-title">Quản lý đơn hàng</Title>
-        </div>
-        <Dropdown overlay={menu} trigger={['hover']} placement="bottomRight">
-          <div className="header-right">
-            <Avatar icon={<UserOutlined />} />
-            <Text className="text-content">{auth.fullName || 'Kế toán'}</Text>
-          </div>
-        </Dropdown>
-      </Header>
+       <Header className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="header-left" style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+        <Title level={3} className="text-title" style={{ marginRight: '20px', lineHeight: '64px' }}>
+          Quản lý đơn hàng
+        </Title>
+      </div>
+      <Dropdown overlay={menu} trigger={['hover']}>
+        <Space style={{ cursor: 'pointer', alignItems: 'center', marginRight: '20px' }}>
+          <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#87d068' }} />
+          <Text className="text-content" style={{ fontSize: '16px', marginLeft: '8px' }}>
+            {auth.fullName || 'Kế toán'}
+          </Text>
+        </Space>
+      </Dropdown>
+    </Header>
 
       <Space direction="vertical" style={{ width: '100%' }}>
         <Row gutter={[16, 16]} align="middle">
@@ -229,6 +233,8 @@ const AccountantScreen = () => {
         rowKey="orderID"
         loading={loading}
         style={{ marginTop: '20px' }}
+        bordered
+        scroll={{ x: 'max-content' }}
       />
     </div>
   );

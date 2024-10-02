@@ -42,11 +42,16 @@
     padding: 10px;
   }
 
+
   .header-left, .header-right {
     flex: 1 1 100%;
     justify-content: center;
     margin-bottom: 10px;
     padding-top: 10px;
+  }
+
+  .header-right{
+    background-color: red !important;
   }
 
   .header-right{
