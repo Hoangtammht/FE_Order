@@ -20,6 +20,8 @@ interface MenuData {
     thu4: string | JSX.Element;
     thu5: string | JSX.Element;
     thu6: string | JSX.Element;
+    thu7: JSX.Element;
+    cn: JSX.Element;
 }
 interface MenuItem {
     scheduleID: 1 | 2 | 3;
@@ -61,67 +63,68 @@ const TeacherMenu: React.FC<TeacherProps> = ({ onToggleMenu }) => {
     const [form] = Form.useForm();
     const auth = useSelector(authSelector);
 
-    const fetchWeeklyMenuData = async (date: moment.Moment) => {
-        const newMenuData: MenuData[] = [];
-        const scheduleNames = ['Sáng', 'Trưa', 'Chiều'];
-
-        const startOfWeek = date.clone().startOf('isoWeek');
-
-        const scheduleGrouped: { [key: number]: { [key: number]: { dishName: string; quantity: number }[] } } = {
-            1: {},
-            2: {},
-            3: {},
-        };
-
-        for (let j = 1; j <= 3; j++) {
-            for (let i = 0; i < 5; i++) {
-                scheduleGrouped[j][i] = [];
-            }
-        }
-
-        for (let i = 0; i < 5; i++) {
-            const currentDate = startOfWeek.clone().add(i, 'days');
-            const formattedDate = currentDate.format('YYYY-MM-DD');
-
-            try {
-                const response = await MenuHandleApi(`/menu/getMenuByDate?serveDate=${formattedDate}`, {}, 'get');
-                const data: MenuItem[] = response.data;
-
-                data.forEach((menuItem: MenuItem) => {
-                    const { scheduleID, dishName, serveDate, quantity } = menuItem;
-                    const serveDateMoment = moment(serveDate);
-                    const dayIndex = serveDateMoment.isoWeekday() - 1;
-
-                    if (dayIndex >= 0 && dayIndex < 5) {
-                        scheduleGrouped[scheduleID][dayIndex].push({ dishName, quantity });
-                    }
-                });
-            } catch (error) {
-            }
-        }
-
-        for (let j = 1; j <= 3; j++) {
-            newMenuData.push({
-                key: j.toString(),
-                time: scheduleNames[j - 1],
-                thu2: createStyledMeals(scheduleGrouped[j][0] || []),
-                thu3: createStyledMeals(scheduleGrouped[j][1] || []),
-                thu4: createStyledMeals(scheduleGrouped[j][2] || []),
-                thu5: createStyledMeals(scheduleGrouped[j][3] || []),
-                thu6: createStyledMeals(scheduleGrouped[j][4] || []),
-            });
-        }
-
-        setMenuData(newMenuData);
-    };
-
     const handleDateChange = (date: moment.Moment | null) => {
         if (date) {
-            const startOfWeek = date.clone().startOf('isoWeek');
-            setSelectedDate(startOfWeek);
-            fetchWeeklyMenuData(startOfWeek);
+          date.locale('vi');
+          const startOfWeek = date.clone().startOf('week');
+          setSelectedDate(date);      
+          fetchWeeklyMenuData(startOfWeek);
         }
-    };
+      };
+      
+      const fetchWeeklyMenuData = async (date: moment.Moment) => {
+        const newMenuData: MenuData[] = [];
+        const scheduleNames = ['Sáng', 'Trưa', 'Chiều'];
+        const startOfWeek = date.clone().startOf('week');
+        const scheduleGrouped: { [key: number]: { [key: number]: { dishName: string; quantity: number }[] } } = {
+          1: {},
+          2: {},
+          3: {},
+        };
+      
+        for (let j = 1; j <= 3; j++) {
+          for (let i = 0; i < 7; i++) {
+            scheduleGrouped[j][i] = [];
+          }
+        }
+      
+        for (let i = 0; i < 7; i++) {
+          const currentDate = startOfWeek.clone().add(i, 'days');
+          const formattedDate = currentDate.format('YYYY-MM-DD');
+      
+          try {
+            const response = await MenuHandleApi(`/menu/getMenuByDate?serveDate=${formattedDate}`, {}, 'get');
+            const data: MenuItem[] = response.data;
+      
+            data.forEach((menuItem: MenuItem) => {
+              const { scheduleID, dishName, serveDate, quantity } = menuItem;
+              const serveDateMoment = moment(serveDate).locale('vi'); 
+              const dayIndex = serveDateMoment.isoWeekday() - 1;
+      
+              if (dayIndex >= 0 && dayIndex < 7) {
+                scheduleGrouped[scheduleID][dayIndex].push({ dishName, quantity });
+              }
+            });
+          } catch (error) {
+          }
+        }
+      
+        for (let j = 1; j <= 3; j++) {
+          newMenuData.push({
+            key: j.toString(),
+            time: scheduleNames[j - 1], 
+            thu2: createStyledMeals(scheduleGrouped[j][0] || []),
+            thu3: createStyledMeals(scheduleGrouped[j][1] || []),
+            thu4: createStyledMeals(scheduleGrouped[j][2] || []),
+            thu5: createStyledMeals(scheduleGrouped[j][3] || []),
+            thu6: createStyledMeals(scheduleGrouped[j][4] || []),
+            thu7: createStyledMeals(scheduleGrouped[j][5] || []),
+            cn: createStyledMeals(scheduleGrouped[j][6] || []),
+          });
+        }
+      
+        setMenuData(newMenuData);
+      };
 
     useEffect(() => {
         if (selectedDate) {
@@ -210,7 +213,6 @@ const TeacherMenu: React.FC<TeacherProps> = ({ onToggleMenu }) => {
                         value={selectedDate}
                         format="DD/MM/YYYY"
                         style={{ marginLeft: '20px' }}
-                        disabled
                     />
                     <Button type="primary"
                         onClick={async () => {
@@ -252,7 +254,7 @@ const TeacherMenu: React.FC<TeacherProps> = ({ onToggleMenu }) => {
                                     const formattedDate = date.format('YYYY-MM-DD');
                                     try {
                                         const response = await MenuHandleApi(`/menu/getMenuByDate?serveDate=${formattedDate}`, {}, 'get');
-                                        setOrderData(response.data); // Cập nhật orderData từ API
+                                        setOrderData(response.data);
                                     } catch (error) {
                                         console.error(error);
                                     }
