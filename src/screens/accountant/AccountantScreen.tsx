@@ -30,6 +30,7 @@ const AccountantScreen = () => {
   const [teacherID, setTeacherID] = useState<string>('');
   const auth = useSelector(authSelector);
   const dispatch = useDispatch();
+  const [feedback, setFeedback] = useState('');
 
   const fetchOrders = async (from: string, to: string) => {
     setLoading(true);
@@ -42,14 +43,16 @@ const AccountantScreen = () => {
     }
   };
 
-  const handleConfirmOrder = async (orderID: number, isConfirm: number) => {
+  const handleConfirmOrder = async (orderID: number, isConfirm: number, feedback?: string) => {
     try {
-      const response = await OrderHandleApi(`/order/confirmOrder`,
-        { orderID: orderID, isConfirm: isConfirm },
-        'put');
+      const response = await OrderHandleApi(
+        `/order/confirmOrder`,
+        { orderID: orderID, isConfirm: isConfirm, feedback: isConfirm === 2 ? feedback : null },
+        'put'
+      );
       if (response.status === 200) {
         message.success('Xét duyệt thành công');
-        fetchOrders(fromDate, toDate);
+        fetchOrders(fromDate, toDate); 
       } else {
         message.error('Duyệt thất bại');
       }
@@ -66,22 +69,51 @@ const AccountantScreen = () => {
   };
 
   const showConfirm = (orderID: number, isConfirm: number) => {
-    const confirmTitle = isConfirm === 1 
-      ? 'Bạn có chắc chắn muốn xét duyệt đơn hàng này không?' 
-      : 'Bạn có chắc chắn muốn từ chối đơn hàng này không?';
+    const confirmTitle =
+      isConfirm === 1
+        ? 'Bạn có chắc chắn muốn xét duyệt đơn hàng này không?'
+        : 'Bạn có chắc chắn muốn từ chối đơn hàng này không?';
   
-    confirm({
-      title: confirmTitle,
-      okText: 'Xác nhận',
-      cancelText: 'Hủy',
-      onOk() {
-        handleConfirmOrder(orderID, isConfirm);
-      },
-      onCancel() {
-      },
-    });
+    if (isConfirm === 2) {
+      let feedbackValue = ''; 
+  
+      Modal.confirm({
+        title: confirmTitle,
+        content: (
+          <Input.TextArea
+            placeholder="Nhập lý do từ chối"
+            onChange={(e) => {
+              feedbackValue = e.target.value; 
+            }}
+            rows={4}
+          />
+        ),
+        okText: 'Xác nhận',
+        cancelText: 'Hủy',
+        onOk() {
+          if (!feedbackValue) {
+            message.error('Vui lòng nhập lý do từ chối');
+            return Promise.reject(); 
+          }
+          handleConfirmOrder(orderID, isConfirm, feedbackValue);
+        },
+        onCancel() {
+          setFeedback('');
+        },
+      });
+    } else {
+      confirm({
+        title: confirmTitle,
+        okText: 'Xác nhận',
+        cancelText: 'Hủy',
+        onOk() {
+          handleConfirmOrder(orderID, isConfirm);
+        },
+        onCancel() {},
+      });
+    }
   };
-
+  
   const columns = [
     {
       title: 'Order ID',

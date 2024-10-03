@@ -6,7 +6,6 @@ import './TeacherOrder.css';
 import moment from 'moment';
 import MenuHandleApi from '../../apis/MenuHandleApi';
 
-
 const { Option } = Select;
 const { Title } = Typography;
 
@@ -20,6 +19,7 @@ interface Order {
   scheduleName: string;
   isConfirm: number;
   createdAt: string;
+  feedback: string;
 }
 
 interface TeacherProps {
@@ -38,9 +38,11 @@ const TeacherOrder: React.FC<TeacherProps> = ({ onToggleMenu }) => {
   const [loading, setLoading] = useState(false);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isModalReasonVisible, setIsModalReasonVisible] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [orderData, setOrderData] = useState<OrderItem[]>([]);
   const [filteredMeals, setFilteredMeals] = useState<OrderItem[]>([]);
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   const [form] = Form.useForm();
 
   const handleEditOrder = async (order: Order) => {
@@ -88,6 +90,11 @@ const TeacherOrder: React.FC<TeacherProps> = ({ onToggleMenu }) => {
     }
     }
   };
+
+  const showRejectionReason = (feedback: string) => {
+    setRejectionReason(feedback || 'Không có lý do cụ thể');
+    setIsModalReasonVisible(true);
+  };
   
 
   useEffect(() => {
@@ -130,7 +137,7 @@ const TeacherOrder: React.FC<TeacherProps> = ({ onToggleMenu }) => {
     {
       title: 'Action',
       key: 'action',
-      render: (text: any, record: any) => (
+      render: (text: any, record: Order) => (
         <>
           {record.isConfirm === 0 ? (
             <>
@@ -146,13 +153,18 @@ const TeacherOrder: React.FC<TeacherProps> = ({ onToggleMenu }) => {
               Đã duyệt
             </Tag>
           ) : (
-            <Tag icon={<CloseCircleOutlined />} color="red">
-              Từ chối
-            </Tag>
+            <>
+              <Tag icon={<CloseCircleOutlined />} color="red">
+                Từ chối
+              </Tag>
+              <Button type="link" onClick={() => showRejectionReason(record.feedback)}>
+                Xem lý do từ chối
+              </Button>
+            </>
           )}
         </>
       ),
-    }    
+    }, 
   ];
 
   return (
@@ -271,6 +283,19 @@ const TeacherOrder: React.FC<TeacherProps> = ({ onToggleMenu }) => {
           </Form.Item>
         </Form>
 
+      </Modal>
+
+      <Modal
+        title="Lý do từ chối đơn hàng"
+        visible={isModalReasonVisible}
+        onCancel={() => setIsModalReasonVisible(false)}
+        footer={[
+          <Button key="close" type="primary" onClick={() => setIsModalReasonVisible(false)}>
+            Đóng
+          </Button>,
+        ]}
+      >
+        <p>{rejectionReason}</p>
       </Modal>
     </div>
   );
