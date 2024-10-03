@@ -6,13 +6,13 @@ const ListUserHandleApi = async (
     method: 'post' | 'put' | 'get' | 'delete' = 'get'
   ) => {
     const authData = JSON.parse(localStorage.getItem('authData') || '{}');
-    const accessToken = authData?.access_token || ''; // Retrieve token from localStorage
+    const accessToken = authData?.access_token || '';
   
     return await AxiosClient(url, {
       method,
       data,
       headers: {
-        Authorization: `Bearer ${accessToken}`, // Add Bearer token to headers
+        Authorization: `Bearer ${accessToken}`,
       },
     });
   };

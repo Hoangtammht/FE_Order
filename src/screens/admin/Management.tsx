@@ -110,7 +110,7 @@ const Management = () => {
         form.resetFields();
         fetchUsers(selectedRole);
       }
-    } catch (error) {
+    } catch (error: any) {
       message.error('Phân lớp thất bại');
     }
   };
@@ -314,6 +314,7 @@ const Management = () => {
           </Form.Item>
         </Form>
       </Modal>
+      
     </div>
   );
 };

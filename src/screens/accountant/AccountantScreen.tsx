@@ -16,6 +16,7 @@ const { confirm } = Modal;
 interface Order {
   orderID: number;
   userName: number;
+  fullName: string;
   dishName: number;
   className: number;
   quantity: number;
@@ -122,8 +123,8 @@ const AccountantScreen = () => {
     },
     {
       title: 'Giáo viên',
-      dataIndex: 'userName',
-      key: 'userName',
+      dataIndex: 'fullName',
+      key: 'fullName',
     },
     {
       title: 'Món ăn',
