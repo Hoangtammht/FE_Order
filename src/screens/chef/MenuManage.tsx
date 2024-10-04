@@ -130,7 +130,6 @@ const MenuManage: React.FC<ChefProps> = ({ onToggleMenu })  => {
         {
           scheduleID: values.scheduleID,
           dishName: values.dishName,
-          price: values.price,
           quantity: values.quantity,
           serveDate: values.serveDate.format('YYYY-MM-DD'),
         },
@@ -278,13 +277,6 @@ const MenuManage: React.FC<ChefProps> = ({ onToggleMenu })  => {
                 return current && current < moment().startOf('day');
               }}
             />
-          </Form.Item>
-          <Form.Item
-            name="price"
-            label="Giá (VNĐ)"
-            rules={[{ required: true, message: 'Vui lòng nhập giá món ăn!' }]}
-          >
-            <InputNumber min={0} placeholder="Nhập giá món ăn" style={{ width: '100%' }} />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">
