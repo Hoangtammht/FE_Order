@@ -8,6 +8,7 @@ import './AdminScreen.css';
 
 const { Title } = Typography;
 const { Option } = Select;
+const { confirm } = Modal;
 
 interface Role {
   roleID: number;
@@ -20,11 +21,13 @@ const Management = () => {
   const [selectedRole, setSelectedRole] = useState(2);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModalAssignClass, setModalAssignClass] = useState(false);
+  const [isModalEditVisible, setIsModalEditVisible] = useState(false);
   const [form] = Form.useForm();
 
-  const [roles, setRoles] = useState<Role[]>([]); 
-  const [teachers, setTeachers] = useState([]); // Lưu danh sách giáo viên (roleID = 2)
-  const [classes, setClasses] = useState([]); 
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [teachers, setTeachers] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const fetchRoles = async () => {
     try {
@@ -42,7 +45,7 @@ const Management = () => {
       if (response.data) {
         setUsers(response.data);
         if (roleID === 2) {
-          setTeachers(response.data); // Lưu danh sách giáo viên
+          setTeachers(response.data);
         }
       }
     } catch (error) {
@@ -115,6 +118,64 @@ const Management = () => {
     }
   };
 
+  const handleEdit = (user: any) => {
+    setSelectedUser(user);
+    form.setFieldsValue({
+      fullName: user.fullName,
+      userName: user.userName,
+      password: '',
+      roleID: user.roleID,
+    });
+    setIsModalEditVisible(true);
+  };
+
+  const handleSubmitEdit = async () => {
+    try {
+      const values = await form.validateFields();
+      const response = await ListUserHandleApi(`/user/editAccount`, {
+        fullName: values.fullName,
+        password: values.password,
+        roleID: values.roleID,
+        userName: values.userName,
+      }, 'put');
+
+      if (response.status === 200) {
+        message.success('Chỉnh sửa tài khoản thành công');
+        setIsModalEditVisible(false);
+        form.resetFields();
+        fetchUsers(selectedRole);
+      }
+    } catch (error) {
+      message.error('Chỉnh sửa tài khoản thất bại');
+    }
+  };
+
+  const confirmDelete = (userName: string, onDelete: () => void) => {
+    confirm({
+      title: 'Bạn có chắc chắn muốn xóa tài khoản này không?',
+      content: `Tài khoản: ${userName}`,
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: onDelete,
+      onCancel() {
+        console.log('Hủy thao tác xóa tài khoản');
+      },
+    });
+  };
+
+  const handleDelete = async (userName: string) => {
+    try {
+      const response = await ListUserHandleApi(`/user/deleteAccount?userName=${userName}`, {}, 'put');
+      if (response.status === 200) {
+        message.success('Xóa tài khoản thành công');
+        fetchUsers(selectedRole);
+      }
+    } catch (error) {
+      message.error('Xóa tài khoản thất bại');
+    }
+  };
+
   const handleCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
@@ -174,6 +235,19 @@ const Management = () => {
       ),
       onFilter: (value: any, record: any) => record.userName.toLowerCase().includes(value.toLowerCase()),
     },
+    ...(selectedRole === 2 ? [{
+      title: 'Lớp học',
+      dataIndex: 'className',
+      key: 'className',
+      render: (classID: any, record: any) => {
+        return record.className ? (
+          <span style={{ fontWeight: 'bold' }}>{record.className}</span>
+        ) : (
+          <span style={{ color: 'red', fontStyle: 'italic' }}>Chưa phân lớp</span>
+        );
+      },
+    }] : []
+    ),
     {
       title: 'Vai trò',
       dataIndex: 'roleID',
@@ -189,6 +263,28 @@ const Management = () => {
       },
       sorter: (a: any, b: any) => a.roleID - b.roleID,
     },
+    {
+      title: 'Thao tác',
+      key: 'actions',
+      render: (text: any, record: any) => (
+        <div>
+          <Button
+            type="link"
+            onClick={() => handleEdit(record)}
+          >
+            Chỉnh sửa
+          </Button>
+          <Button
+            type="link"
+            danger
+            onClick={() => confirmDelete(record.userName, () => handleDelete(record.userName))}
+          >
+            Xóa
+          </Button>
+        </div>
+      ),
+    },
+
   ];
 
   return (
@@ -207,15 +303,15 @@ const Management = () => {
           </Button>
         </div>
 
-       <div>
-       <Button style={{marginTop: '10px'}} type="primary" icon={<PlusOutlined />} onClick={showModal}>
-          Thêm tài khoản
-        </Button>
+        <div>
+          <Button style={{ marginTop: '10px' }} type="primary" icon={<PlusOutlined />} onClick={showModal}>
+            Thêm tài khoản
+          </Button>
 
-        <Button style={{marginTop: '10px', marginLeft: '10px'}} type="primary" icon={<PlusOutlined />} onClick={showModalAssignClass}>
-          Phân lớp
-        </Button>
-       </div>
+          <Button style={{ marginTop: '10px', marginLeft: '10px' }} type="primary" icon={<PlusOutlined />} onClick={showModalAssignClass}>
+            Phân lớp
+          </Button>
+        </div>
       </div>
 
       <div className="table-responsive">
@@ -314,7 +410,52 @@ const Management = () => {
           </Form.Item>
         </Form>
       </Modal>
-      
+
+      <Modal
+        title="Chỉnh sửa tài khoản"
+        visible={isModalEditVisible}
+        onOk={handleSubmitEdit}
+        onCancel={() => setIsModalEditVisible(false)}
+        okText="Lưu"
+        cancelText="Hủy"
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            label="Họ và tên"
+            name="fullName"
+            rules={[{ required: true, message: 'Vui lòng nhập họ và tên' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Tài khoản"
+            name="userName"
+            rules={[{ required: true, message: 'Vui lòng nhập tài khoản' }]}
+          >
+            <Input disabled />
+          </Form.Item>
+          <Form.Item 
+          label="Mật khẩu"
+            name="password"
+            rules={[{ required: true, message: 'Vui lòng nhập mật khẩu' }]}>
+            <Input.Password placeholder="Vui lòng nhập mật khẩu" />
+          </Form.Item>
+          <Form.Item
+            label="Vai trò"
+            name="roleID"
+            rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
+          >
+            <Select>
+              {roles.map(role => (
+                <Option key={role.roleID} value={role.roleID}>
+                  {role.roleName}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+
     </div>
   );
 };

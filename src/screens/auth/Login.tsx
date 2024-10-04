@@ -34,8 +34,11 @@ const Login = () => {
                     }));
                 }
             } catch (error: any) {
-                console.log(error);
-                message.error("Tài khoản hoặc mật khẩu không chính xác");
+                if (error.response && error.response.data) {
+                    message.error(error.response.data.error_message || "Đã xảy ra lỗi không xác định");
+                } else {
+                    message.error("Tài khoản hoặc mật khẩu không chính xác");
+                }
             } finally {
                 setIsLoading(false);
             }
