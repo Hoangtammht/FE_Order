@@ -155,7 +155,7 @@ const AccountantScreen = () => {
       title: 'Giá tiền',
       dataIndex: 'price',
       key: 'price',
-      render: (price: number) => `${price.toLocaleString()} VND`,
+      render: (price: number) => price ? `${price.toLocaleString()} VND` : 'Chưa được định giá',
     },
     {
       title: 'Số lượng',
@@ -167,9 +167,12 @@ const AccountantScreen = () => {
       dataIndex: 'totalPrice',
       key: 'totalPrice',
       render: (text: any, record: any) => {
-        const calculatedTotalPrice = record.price * record.quantity;
+        const price = record.price && !isNaN(record.price) ? record.price : 0;
+        const quantity = record.quantity && !isNaN(record.quantity) ? record.quantity : 0;
+        const calculatedTotalPrice = price * quantity;
         return `${calculatedTotalPrice.toLocaleString()} VND`;
-      },
+      }
+      
     },
     {
       title: 'Action',
@@ -253,7 +256,7 @@ const AccountantScreen = () => {
       title: 'Giá',
       dataIndex: 'price',
       key: 'price',
-      render: (price: number) => `${price.toLocaleString()} VND`,
+      render: (price: number) => price ? `${price.toLocaleString()} VND` : 'Chưa được định giá',
     },
     {
       title: 'Số lượng',
@@ -425,7 +428,7 @@ const AccountantScreen = () => {
         onCancel={handleCancel}
       >
         <p>Tên món ăn: {currentMenuItem?.dishName}</p>
-        <p>Giá hiện tại: {currentMenuItem?.price.toLocaleString()} VND</p>
+        <p>Giá hiện tại: {currentMenuItem?.price ? currentMenuItem.price.toLocaleString() : 'Chưa được định giá'} VND</p>
         <Input
           type="number"
           value={newPrice}
