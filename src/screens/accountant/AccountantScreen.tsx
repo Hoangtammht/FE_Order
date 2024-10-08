@@ -27,6 +27,7 @@ interface Order {
 interface MenuItem {
   menuID: number;
   userID: number;
+  fullName: string;
   scheduleID: number;
   scheduleName: string;
   dishName: string;
@@ -172,7 +173,7 @@ const AccountantScreen = () => {
         const calculatedTotalPrice = price * quantity;
         return `${calculatedTotalPrice.toLocaleString()} VND`;
       }
-      
+
     },
     {
       title: 'Action',
@@ -183,7 +184,13 @@ const AccountantScreen = () => {
             <>
               <Button
                 type="primary"
-                onClick={() => showConfirm(record.orderID, 1)}
+                onClick={() => {
+                  if (!record.price || record.price === 0) {
+                    message.warning('Đơn hàng chưa có giá cụ thể, vui lòng điều chỉnh món ăn trước khi xét duyệt.');
+                  } else {
+                    showConfirm(record.orderID, 1);
+                  }
+                }}
                 style={{ marginRight: '8px' }}
               >
                 Xét duyệt
@@ -209,7 +216,7 @@ const AccountantScreen = () => {
       ),
     },
   ];
-  
+
 
   const onSearchTeacher = (value: string) => {
     setTeacherID(value);
@@ -240,6 +247,25 @@ const AccountantScreen = () => {
       title: 'Đầu bếp',
       dataIndex: 'fullName',
       key: 'fullName',
+      sorter: (a: any, b: any) => a.fullName.localeCompare(b.fullName),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: any) => (
+        <div style={{ padding: 8 }}>
+          <Input
+            placeholder="Search Full Name"
+            value={selectedKeys[0]}
+            onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={() => confirm()}
+            style={{ marginBottom: 8, display: 'block' }}
+          />
+          <Button type="primary" onClick={() => confirm()} icon={<SearchOutlined />} size="small" style={{ width: 90 }}>
+            Tìm kiếm
+          </Button>
+          <Button onClick={() => clearFilters()} size="small" style={{ width: 90, marginTop: 8 }}>
+            Đặt lại
+          </Button>
+        </div>
+      ),
+      onFilter: (value: any, record: any) => record.fullName.toLowerCase().includes(value.toLowerCase()),
     },
     {
       title: 'Tên món ăn',
@@ -251,23 +277,55 @@ const AccountantScreen = () => {
       title: 'Thời gian',
       dataIndex: 'scheduleName',
       key: 'scheduleName',
+
     },
     {
       title: 'Giá',
       dataIndex: 'price',
       key: 'price',
       render: (price: number) => price ? `${price.toLocaleString()} VND` : 'Chưa được định giá',
+      sorter: (a: MenuItem, b: MenuItem) => a.price - b.price,
     },
     {
       title: 'Số lượng',
       dataIndex: 'quantity',
       key: 'quantity',
+      sorter: (a: MenuItem, b: MenuItem) => a.quantity - b.quantity,
     },
     {
       title: 'Ngày phục vụ',
       dataIndex: 'serveDate',
       key: 'serveDate',
       render: (date: string) => moment(date).format('DD/MM/YYYY'),
+      sorter: (a: MenuItem, b: MenuItem) => moment(a.serveDate).unix() - moment(b.serveDate).unix(),
+
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: any) => (
+        <div style={{ padding: 8 }}>
+          <DatePicker
+            format="DD/MM/YYYY"
+            value={selectedKeys[0] ? moment(selectedKeys[0], 'DD/MM/YYYY') : null}
+            onChange={(date, dateString) => setSelectedKeys(dateString ? [dateString] : [])}
+            style={{ marginBottom: 8, display: 'block' }}
+          />
+          <Button
+            type="primary"
+            onClick={() => confirm()}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Tìm kiếm
+          </Button>
+          <Button
+            onClick={() => clearFilters()}
+            size="small"
+            style={{ width: 90, marginTop: 8 }}
+          >
+            Đặt lại
+          </Button>
+        </div>
+      ),
+      onFilter: (value: any, record: any) => moment(record.serveDate).format('DD/MM/YYYY') === value,
     },
     {
       title: 'Hành động',
@@ -332,15 +390,15 @@ const AccountantScreen = () => {
 
   return (
     <div style={{ padding: '20px' }}>
-      <Header className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Header className="header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
         <div className="header-left" style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-          <Title level={3} className="text-title" style={{ marginRight: '20px', lineHeight: '64px' }}>
+          <Title level={3} className="text-title" style={{ marginRight: '20px', lineHeight: '64px', fontSize: '24px' }}>
             Quản lý đơn hàng
           </Title>
         </div>
         <Dropdown overlay={menu} trigger={['hover']}>
           <Space style={{ cursor: 'pointer', alignItems: 'center', marginRight: '20px' }}>
-            <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#87d068' }} />
+            <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#87d068', width: '40px', height: '40px' }} />
             <Text className="text-content" style={{ fontSize: '16px', marginLeft: '8px' }}>
               {auth.fullName || 'Kế toán'}
             </Text>

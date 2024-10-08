@@ -37,36 +37,45 @@
 }
 
 @media (max-width: 768px) {
-  header {
-    flex-wrap: wrap; /* Stack items vertically on small screens */
+  .header {
     padding: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
-
-  .header-left, .header-right {
+  .header-left {
     flex: 1 1 100%;
     justify-content: center;
+    text-align: center;
     margin-bottom: 10px;
-    padding-top: 10px;
   }
 
-  .header-right{
-    background-color: red !important;
-  }
-
-  .header-right{
-    padding-left: 90px;
-  }
-
-  .text-title {
-    font-size: 16px;
+  .header-right {
+    flex: 1 1 100%;
     text-align: center;
   }
 
-  .text-content {
-    font-size: 12px;
-    text-align: center; 
+  .text-title {
+    font-size: 18px;
+    line-height: 1.2;
+    text-align: center;
+    margin: 0;
   }
 
+  .text-content {
+    font-size: 14px;
+  }
 
+  .ant-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .header-right {
+    padding: 0;
+  }
+
+  .ant-space {
+    justify-content: center;
+  }
 }

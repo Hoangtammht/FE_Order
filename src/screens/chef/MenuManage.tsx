@@ -1,4 +1,4 @@
-import { Table, DatePicker, message, Avatar, Typography, Button, Modal, Form, Input, Select, InputNumber, Dropdown, Menu } from 'antd';
+import { Table, DatePicker, message, Avatar, Typography, Button, Modal, Form, Input, Select, InputNumber, Upload } from 'antd';
 import 'antd/dist/reset.css';
 import { UserOutlined, MenuOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
@@ -47,7 +47,7 @@ interface ChefProps {
   onToggleMenu: () => void;
 }
 
-const MenuManage: React.FC<ChefProps> = ({ onToggleMenu })  => {
+const MenuManage: React.FC<ChefProps> = ({ onToggleMenu }) => {
   const [menuData, setMenuData] = useState<MenuData[]>([]);
   const [selectedDate, setSelectedDate] = useState<moment.Moment | null>(moment());
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -58,11 +58,11 @@ const MenuManage: React.FC<ChefProps> = ({ onToggleMenu })  => {
     if (date) {
       date.locale('vi');
       const startOfWeek = date.clone().startOf('week');
-      setSelectedDate(date);      
+      setSelectedDate(date);
       fetchWeeklyMenuData(startOfWeek);
     }
   };
-  
+
   const fetchWeeklyMenuData = async (date: moment.Moment) => {
     const newMenuData: MenuData[] = [];
     const scheduleNames = ['Sáng', 'Trưa', 'Chiều'];
@@ -72,26 +72,26 @@ const MenuManage: React.FC<ChefProps> = ({ onToggleMenu })  => {
       2: {},
       3: {},
     };
-  
+
     for (let j = 1; j <= 3; j++) {
       for (let i = 0; i < 7; i++) {
         scheduleGrouped[j][i] = [];
       }
     }
-  
+
     for (let i = 0; i < 7; i++) {
       const currentDate = startOfWeek.clone().add(i, 'days');
       const formattedDate = currentDate.format('YYYY-MM-DD');
-  
+
       try {
         const response = await MenuHandleApi(`/menu/getMenuByDate?serveDate=${formattedDate}`, {}, 'get');
         const data: MenuItem[] = response.data;
-  
+
         data.forEach((menuItem: MenuItem) => {
           const { scheduleID, dishName, serveDate, quantity } = menuItem;
-          const serveDateMoment = moment(serveDate).locale('vi'); 
+          const serveDateMoment = moment(serveDate).locale('vi');
           const dayIndex = serveDateMoment.isoWeekday() - 1;
-  
+
           if (dayIndex >= 0 && dayIndex < 7) {
             scheduleGrouped[scheduleID][dayIndex].push({ dishName, quantity });
           }
@@ -99,11 +99,11 @@ const MenuManage: React.FC<ChefProps> = ({ onToggleMenu })  => {
       } catch (error) {
       }
     }
-  
+
     for (let j = 1; j <= 3; j++) {
       newMenuData.push({
         key: j.toString(),
-        time: scheduleNames[j - 1], 
+        time: scheduleNames[j - 1],
         thu2: createStyledMeals(scheduleGrouped[j][0] || []),
         thu3: createStyledMeals(scheduleGrouped[j][1] || []),
         thu4: createStyledMeals(scheduleGrouped[j][2] || []),
@@ -113,10 +113,10 @@ const MenuManage: React.FC<ChefProps> = ({ onToggleMenu })  => {
         cn: createStyledMeals(scheduleGrouped[j][6] || []),
       });
     }
-  
+
     setMenuData(newMenuData);
   };
-  
+
   useEffect(() => {
     if (selectedDate) {
       fetchWeeklyMenuData(selectedDate);
@@ -135,15 +135,31 @@ const MenuManage: React.FC<ChefProps> = ({ onToggleMenu })  => {
         },
         'post'
       );
-
       message.success('Thêm món ăn thành công');
       setIsModalVisible(false);
       form.resetFields();
       fetchWeeklyMenuData(selectedDate!);
     } catch (error: any) {
-      message.error(error.message);
+      message.error("Đặt món thất bại");
     }
   };
+
+  const handleImportExcel = async (file: any) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      await MenuHandleApi(
+        '/menu/importExcel',
+        formData,
+        'post'
+      );
+      message.success('Nhập món ăn thành công');
+      fetchWeeklyMenuData(selectedDate!);
+    } catch (error: any) {
+      message.error("Nhập món ăn thất bại");
+    }
+  };
+
 
   const columns = [
     {
@@ -200,28 +216,39 @@ const MenuManage: React.FC<ChefProps> = ({ onToggleMenu })  => {
           style={{ marginRight: '45px', fontSize: '20px', lineHeight: '45px', color: 'black' }}
         />
         <div className="header-left" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-          <Text className="header-title" strong style={{ fontSize: '25px', flex: '1 1 auto' }}>
+          <Text className="header-title" strong style={{ fontSize: '25px', flex: '1 1 auto', marginRight: '20px' }}>
             Danh sách thực đơn
           </Text>
           <DatePicker
             onChange={handleDateChange}
             value={selectedDate}
             format="DD/MM/YYYY"
-            style={{ marginLeft: '20px', marginTop: '10px', flex: '1 1 auto' }}
+            style={{ marginRight: '20px', flex: '1 1 auto' }}
           />
           <Button
             type="primary"
             onClick={() => setIsModalVisible(true)}
-            style={{ marginLeft: '20px', marginTop: '10px', flex: '1 1 auto' }}
+            style={{ marginRight: '20px' }}
           >
             Thêm món ăn
           </Button>
+          <Upload
+            showUploadList={false}
+            beforeUpload={file => {
+              handleImportExcel(file);
+              return false;
+            }}
+            style={{ marginRight: '20px' }}
+          >
+            <Button type="primary">Nhập từ Excel</Button>
+          </Upload>
         </div>
+
         <div className="header-right" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div className="user-info" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flex: '1 1 auto' }}>
-              <Avatar icon={<UserOutlined />} />
-              <Text style={{ marginLeft: '10px' }}>{auth.fullName || 'Đầu bếp'}</Text>
-            </div>
+          <div className="user-info" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flex: '1 1 auto' }}>
+            <Avatar icon={<UserOutlined />} />
+            <Text style={{ marginLeft: '10px' }}>{auth.fullName || 'Đầu bếp'}</Text>
+          </div>
         </div>
       </Header>
 

@@ -17,8 +17,10 @@
 
 @media (max-width: 768px) {
 
+  
+
   .header {
-    height: 180px;
+    height: 250px;
   }
 
   .header-left {
