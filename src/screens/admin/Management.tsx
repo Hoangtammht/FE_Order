@@ -94,8 +94,12 @@ const Management = () => {
         form.resetFields();
         fetchUsers(selectedRole);
       }
-    } catch (error) {
-      message.error('Tạo tài khoản thất bại');
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        message.error(error.response.data.message || "Tạo tài khoản thất bại");
+    } else {
+        message.error("Tạo tài khoản thất bại");
+    }
     }
   };
 

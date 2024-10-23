@@ -9,6 +9,7 @@ import { authSelector, removeAuth } from '../../reduxs/reducers/authReducer';
 import { Header } from 'antd/es/layout/layout';
 import './AccountantScreen.css'
 import MenuHandleApi from '../../apis/MenuHandleApi';
+import { handleLogoutButton } from '../../apis/AxiosClient';
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;
@@ -230,8 +231,8 @@ const AccountantScreen = () => {
     return current && current < moment(fromDate, 'YYYY-MM-DD').startOf('day');
   };
 
-  const handleLogout = () => {
-    dispatch(removeAuth({}));
+  const handleLogout = async () => {
+    await handleLogoutButton();
   };
 
   const menu = (

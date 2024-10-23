@@ -6,6 +6,7 @@ import { removeAuth } from '../../reduxs/reducers/authReducer';
 import './Slider.css';
 import React from 'react';
 import { Dispatch, SetStateAction } from 'react';
+import { handleLogoutButton } from '../../apis/AxiosClient';
 
 interface AdminProps {
   isMobile: boolean;
@@ -16,9 +17,8 @@ const AdminSidebar: React.FC<AdminProps> = ({ setCollapsed, isMobile }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const logout = () => {
-    dispatch(removeAuth({}));
-    navigate('/');
+  const handleLogout = async () => {
+    await handleLogoutButton();
   };
 
   const handleMenuClick = (path: string) => {
@@ -44,7 +44,7 @@ const AdminSidebar: React.FC<AdminProps> = ({ setCollapsed, isMobile }) => {
             <Menu.Item key="management" icon={<FileTextOutlined />} onClick={() => handleMenuClick('/management')}>
               Management
             </Menu.Item>
-            <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={logout}>
+            <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
               Logout
             </Menu.Item>
           </Menu>
@@ -65,7 +65,7 @@ const AdminSidebar: React.FC<AdminProps> = ({ setCollapsed, isMobile }) => {
             <Menu.Item key="management" icon={<FileTextOutlined />} onClick={() => navigate('/management')}>
               Quản lý
             </Menu.Item>
-            <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={logout}>
+            <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
               Đăng xuất
             </Menu.Item>
           </Menu>

@@ -1,4 +1,5 @@
-import AxiosClient from "./AxiosClient";
+import {AxiosClient} from "./AxiosClient";
+
 
 const MenuHandleApi = async (
     url: string,

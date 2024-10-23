@@ -1,4 +1,5 @@
-import AxiosClient from "./AxiosClient";
+import {AxiosClient} from "./AxiosClient";
+
 
 const ListUserHandleApi = async (
     url: string,

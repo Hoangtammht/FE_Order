@@ -6,6 +6,7 @@ import { removeAuth } from '../../reduxs/reducers/authReducer';
 import './TeacherSlider.css'
 
 import { Dispatch, SetStateAction } from 'react';
+import { handleLogoutButton } from '../../apis/AxiosClient';
 
 interface ChefProps {
   isMobile: boolean;
@@ -16,9 +17,8 @@ const TeacherSlide: React.FC<ChefProps> = ({ setCollapsed, isMobile }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const logout = () => {
-    dispatch(removeAuth({}));
-    navigate('/');
+  const handleLogout = async () => {
+    await handleLogoutButton();
   };
 
   const handleMenuClick = (path: string) => {
@@ -44,7 +44,7 @@ const TeacherSlide: React.FC<ChefProps> = ({ setCollapsed, isMobile }) => {
             <Menu.Item key="order" icon={<FileTextOutlined />} onClick={() => handleMenuClick('/teacher-order')}>
               Đặt hàng
             </Menu.Item>
-            <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={logout}>
+            <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
               Đăng xuất
             </Menu.Item>
           </Menu>
@@ -65,7 +65,7 @@ const TeacherSlide: React.FC<ChefProps> = ({ setCollapsed, isMobile }) => {
             <Menu.Item key="order" icon={<FileTextOutlined />} onClick={() => navigate('/teacher-order')}>
               Đặt hàng
             </Menu.Item>
-            <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={logout}>
+            <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
               Đăng xuất
             </Menu.Item>
           </Menu>

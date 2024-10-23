@@ -27,6 +27,7 @@ const Login = () => {
                     localStorage.setItem(localDataNames.authData, JSON.stringify(res.data));
                     dispatch(addAuth({
                         access_token: res.data.access_token,
+                        refresh_token: res.data.refresh_token,
                         userID: res.data.User.userID,
                         userName: res.data.User.userName,
                         fullName: res.data.User.fullName,
